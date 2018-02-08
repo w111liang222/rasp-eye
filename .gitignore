@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# lwang ignore
+rasp_detection/3rdpart/
+rasp_detection/darknet_modify/*.weights
