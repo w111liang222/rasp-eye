@@ -1,5 +1,5 @@
-GPU=0
-CUDNN=0
+GPU=1
+CUDNN=1
 OPENCV=1
 OPENMP=1
 DEBUG=0
@@ -24,8 +24,8 @@ NVCC=nvcc
 AR=ar
 ARFLAGS=rcs
 OPTS=-Ofast
-LDFLAGS= -lm -pthread 
-COMMON= -Iinclude/ -Isrc/
+LDFLAGS= -L/opt/OpenBLAS/lib -lm -pthread -lopenblas 
+COMMON= -Iinclude/ -Isrc/ -I/opt/OpenBLAS/include/
 CFLAGS=-Wall -Wno-unknown-pragmas -Wfatal-errors -fPIC
 
 ifeq ($(OPENMP), 1) 
@@ -68,8 +68,8 @@ EXECOBJ = $(addprefix $(OBJDIR), $(EXECOBJA))
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
 DEPS = $(wildcard src/*.h) Makefile include/darknet.h
 
-#all: obj backup results $(SLIB) $(ALIB) $(EXEC)
-all: obj  results $(SLIB) $(ALIB) $(EXEC)
+#all: obj $(SLIB) $(ALIB) $(EXEC)
+all: obj  $(SLIB) $(ALIB) $(EXEC)
 
 
 $(EXEC): $(EXECOBJ) $(ALIB)
@@ -89,10 +89,6 @@ $(OBJDIR)%.o: %.cu $(DEPS)
 
 obj:
 	mkdir -p obj
-backup:
-	mkdir -p backup
-results:
-	mkdir -p results
 
 .PHONY: clean
 
