@@ -1,6 +1,6 @@
 #include "darknet.h"
 
-void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, char *outfile, int fullscreen)
+void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, int fullscreen)
 {
     list *options = read_data_cfg(datacfg);
     char *name_list = option_find_str(options, "names", "data/names.list");
@@ -50,11 +50,9 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         draw_detections(im, l.w*l.h*l.n, thresh, boxes, probs, masks, names, alphabet, l.classes);
-        if(outfile){
-            save_image(im, outfile);
-        }
-        else{
-            save_image(im, "predictions");
+
+
+        save_image(im, "predictions");
 #ifdef OPENCV
             cvNamedWindow("predictions", CV_WINDOW_NORMAL);
             if(fullscreen){
@@ -64,7 +62,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             cvWaitKey(0);
             cvDestroyAllWindows();
 #endif
-        }
+
 
         free_image(im);
         free_image(sized);
@@ -76,56 +74,73 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
 
 void run_detector(int argc, char **argv)
 {
-    //char *prefix = find_char_arg(argc, argv, "-prefix", 0);
+    static char detector_data[][50] ={"cfg/coco.data",
+                                      "cfg/voc.data"};
+    static char detector_cfg[][50]={"cfg/yolo.cfg",
+                                    "cfg/tiny-yolo.cfg",
+                                    "cfg/yolo-voc.cfg",
+                                    "cfg/tiny-yolo-voc.cfg"};
+    static char detector_weight[][50]={"yolo.weights",
+                                       "tiny-yolo.weights",
+                                       "yolo-voc.weights",
+                                       "tiny-yolo-voc.weights"};
+
     float thresh = find_float_arg(argc, argv, "-thresh", .24);
     float hier_thresh = find_float_arg(argc, argv, "-hier", .5);
-    int cam_index = find_int_arg(argc, argv, "-c", 0);
-    int frame_skip = find_int_arg(argc, argv, "-s", 0);
-    int avg = find_int_arg(argc, argv, "-avg", 3);
-    if(argc < 4){
-        fprintf(stderr, "usage: %s %s [train/test/valid] [cfg] [weights (optional)]\n", argv[0], argv[1]);
-        return;
-    }
-    char *gpu_list = find_char_arg(argc, argv, "-gpus", 0);
-    char *outfile = find_char_arg(argc, argv, "-out", 0);
-    int *gpus = 0;
-    int gpu = 0;
-    int ngpus = 0;
-    if(gpu_list){
-        printf("%s\n", gpu_list);
-        int len = strlen(gpu_list);
-        ngpus = 1;
-        int i;
-        for(i = 0; i < len; ++i){
-            if (gpu_list[i] == ',') ++ngpus;
-        }
-        gpus = calloc(ngpus, sizeof(int));
-        for(i = 0; i < ngpus; ++i){
-            gpus[i] = atoi(gpu_list);
-            gpu_list = strchr(gpu_list, ',')+1;
-        }
-    } else {
-        gpu = gpu_index;
-        gpus = &gpu;
-        ngpus = 1;
-    }
 
-    int clear = find_arg(argc, argv, "-clear");
     int fullscreen = find_arg(argc, argv, "-fullscreen");
     int width = find_int_arg(argc, argv, "-w", 0);
     int height = find_int_arg(argc, argv, "-h", 0);
     int fps = find_int_arg(argc, argv, "-fps", 0);
 
-    char *datacfg = argv[3];
-    char *cfg = argv[4];
-    char *weights = (argc > 5) ? argv[5] : 0;
-    char *filename = (argc > 6) ? argv[6]: 0;
-    if(0==strcmp(argv[2], "test")) test_detector(datacfg, cfg, weights, filename, thresh, hier_thresh, outfile, fullscreen);
-    else if(0==strcmp(argv[2], "demo")) {
+    char *datacfg=NULL;
+    char *cfg=NULL;
+    char *weights=NULL;
+
+    char *filename = find_char_arg(argc, argv, "-i", 0);
+    if(NULL==filename){
+        error("Please use '-i' to choose input file\n");
+        return;
+    }
+
+    char *detector_type = find_char_arg(argc, argv, "-d", 0);
+    if(NULL==detector_type){
+        error("Please use '-d' to choose detector\n");
+        return ;
+    }else{
+        if(0==strcmp(detector_type, "coco")) {
+            datacfg = detector_data[0];
+            cfg = detector_cfg[0];
+            weights = detector_weight[0];
+        }else if(0==strcmp(detector_type, "tiny-coco")) {
+            datacfg = detector_data[0];
+            cfg = detector_cfg[1];
+            weights = detector_weight[1];
+        }else if(0==strcmp(detector_type, "voc")) {
+            datacfg = detector_data[1];
+            cfg = detector_cfg[2];
+            weights = detector_weight[2];
+        }else if(0==strcmp(detector_type, "tiny-voc")) {
+            datacfg = detector_data[1];
+            cfg = detector_cfg[3];
+            weights = detector_weight[3];
+        }else{
+            printf("Wrong Detector:%s\n",detector_type);
+            return;
+        }
+    }
+    printf("Select Detector:%s\n",detector_type);
+
+
+    if(0==strcmp(argv[1], "image")) test_detector(datacfg, cfg, weights, filename, thresh, hier_thresh, fullscreen);
+    else if(0==strcmp(argv[1], "video")) {
         list *options = read_data_cfg(datacfg);
         int classes = option_find_int(options, "classes", 20);
         char *name_list = option_find_str(options, "names", "data/names.list");
         char **names = get_labels(name_list);
-        demo(cfg, weights, thresh, cam_index, filename, names, classes, frame_skip, avg, hier_thresh, width, height, fps, fullscreen);
+        demo(cfg, weights, thresh, filename, names, classes, hier_thresh, width, height, fps, fullscreen);
+    }else{
+        error("Error Option\n");
     }
+
 }

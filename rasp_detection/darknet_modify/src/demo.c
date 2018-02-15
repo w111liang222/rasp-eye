@@ -30,19 +30,18 @@ static IplImage  * ipl;
 static float fps = 0;
 static float demo_thresh = 0;
 static float demo_hier = .5;
-static int running = 0;
 
 static int demo_frame = 3;
 static int demo_detections = 0;
 static float **predictions;
-static int demo_index = 0;
+
 static int demo_done = 0;
 static float *avg;
 double demo_time;
 
 void *detect_in_thread(void *ptr)
 {
-    running = 1;
+    static int demo_index = 0;
     float nms = .4;
 
     layer l = net->layers[net->n-1];
@@ -69,7 +68,7 @@ void *detect_in_thread(void *ptr)
     draw_detections(display, demo_detections, demo_thresh, boxes, probs, 0, demo_names, demo_alphabet, demo_classes);
 
     demo_index = (demo_index + 1)%demo_frame;
-    running = 0;
+
     return 0;
 }
 
@@ -83,43 +82,21 @@ void *fetch_in_thread(void *ptr)
 
 void *display_in_thread(void *ptr)
 {
-    show_image_cv(buff[(buff_index + 1)%3], "Demo", ipl);
+    show_image_cv(buff[(buff_index + 1)%3], "Rasp-eye", ipl);
     int c = cvWaitKey(1);
     if (c != -1) c = c%256;
-    if (c == 27) {
+    if (c == 27) {//ESC quit the program
         demo_done = 1;
-        return 0;
-    } else if (c == 82) {
-        demo_thresh += .02;
-    } else if (c == 84) {
-        demo_thresh -= .02;
-        if(demo_thresh <= .02) demo_thresh = .02;
-    } else if (c == 83) {
-        demo_hier += .02;
-    } else if (c == 81) {
-        demo_hier -= .02;
-        if(demo_hier <= .0) demo_hier = .0;
     }
     return 0;
 }
 
-void *display_loop(void *ptr)
+void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char **names, int classes, float hier, int w, int h, int frames, int fullscreen)
 {
-    while(1){
-        display_in_thread(0);
-    }
-}
+    pthread_t detect_thread;
+    pthread_t fetch_thread;
 
-void *detect_loop(void *ptr)
-{
-    while(1){
-        detect_in_thread(0);
-    }
-}
-
-void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const char *filename, char **names, int classes, int delay, int avg_frames, float hier, int w, int h, int frames, int fullscreen)
-{
-    demo_frame = avg_frames;
+    demo_frame = 5;//average the prediction results
     predictions = calloc(demo_frame, sizeof(float*));
     image **alphabet = load_alphabet();
     demo_names = names;
@@ -127,20 +104,17 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     demo_classes = classes;
     demo_thresh = thresh;
     demo_hier = hier;
-    printf("Demo\n");
-    net = load_network(cfgfile, weightfile, 0);
-    set_batch_network(net, 1);
-    pthread_t detect_thread;
-    pthread_t fetch_thread;
 
     srand(2222222);
 
+    // Initial Opencv
     if(filename){
-        printf("video file: %s\n", filename);
+        printf("Video file: %s\n", filename);
         cap = cvCaptureFromFile(filename);
-    }else{
-        cap = cvCaptureFromCAM(cam_index);
-
+        if(!cap) {
+            fprintf(stderr,"Couldn't connect to video %s.\n",filename);
+            exit(1);
+        }
         if(w){
             cvSetCaptureProperty(cap, CV_CAP_PROP_FRAME_WIDTH, w);
         }
@@ -150,9 +124,28 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
         if(frames){
             cvSetCaptureProperty(cap, CV_CAP_PROP_FPS, frames);
         }
+    }else{
+        error("No Video Input!\n");
+        exit(1);
     }
 
-    if(!cap) error("Couldn't connect to webcam.\n");
+    //Get Image Sizs
+    im_origin_width = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_WIDTH);
+    im_origin_height = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_HEIGHT);
+    printf("Image Width=%d,Height=%d\n",(int)im_origin_width,(int)im_origin_height);
+
+    cvNamedWindow("Rasp-eye", CV_WINDOW_NORMAL);
+    if(fullscreen){
+        cvSetWindowProperty("Rasp-eye", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+    } else {
+        cvResizeWindow("Rasp-eye", im_origin_width, im_origin_height);
+    }
+
+
+    printf("Load Network...\n");
+    net = load_network(cfgfile, weightfile, 0);
+    set_batch_network(net, 1);
+
 
     layer l = net->layers[net->n-1];
     demo_detections = l.n*l.w*l.h;
@@ -173,21 +166,13 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
     buff_letter[2] = letterbox_image(buff[0], net->w, net->h);
     ipl = cvCreateImage(cvSize(buff[0].w,buff[0].h), IPL_DEPTH_8U, buff[0].c);
 
+
     int count = 0;
-
-    cvNamedWindow("Demo", CV_WINDOW_NORMAL);
-    if(fullscreen){
-        cvSetWindowProperty("Demo", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-    } else {
-        im_origin_width = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_WIDTH);
-        im_origin_height = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_HEIGHT);
-        cvResizeWindow("Demo", im_origin_width, im_origin_height);
-    }
-
 
     demo_time = what_time_is_it_now();
 
     while(!demo_done){
+        //TODO USE QUEUE to process images
         buff_index = (buff_index + 1) %3;
         if(pthread_create(&fetch_thread, 0, fetch_in_thread, 0)) error("Thread creation failed");
         if(pthread_create(&detect_thread, 0, detect_in_thread, 0)) error("Thread creation failed");
@@ -204,7 +189,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
 
 #else
-void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const char *filename, char **names, int classes, int delay, int avg, float hier, int w, int h, int frames, int fullscreen)
+void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char **names, int classes, float hier, int w, int h, int frames, int fullscreen)
 {
     fprintf(stderr, "Demo needs OpenCV for webcam images.\n");
 }
