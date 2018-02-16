@@ -99,14 +99,14 @@ void run_detector(int argc, char **argv)
 
     char *filename = find_char_arg(argc, argv, "-i", 0);
     if(NULL==filename){
-        error("Please use '-i' to choose input file\n");
+        printf("Please use '-i' to choose input file, use -h for detail info\n");
         return;
     }
 
     char *detector_type = find_char_arg(argc, argv, "-d", 0);
     if(NULL==detector_type){
-        error("Please use '-d' to choose detector\n");
-        return ;
+        printf("Please use '-d' to choose detector, use -h for detail info\n");
+        return;
     }else{
         if(0==strcmp(detector_type, "coco")) {
             datacfg = detector_data[0];
@@ -140,7 +140,7 @@ void run_detector(int argc, char **argv)
         char **names = get_labels(name_list);
         demo(cfg, weights, thresh, filename, names, classes, hier_thresh, width, height, fps, fullscreen);
     }else{
-        error("Error Option\n");
+        printf("Error option, use -h for detail info\n");
     }
 
 }

@@ -10,7 +10,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-int windows = 0;
 
 float colors[6][3] = { {1,0,1}, {0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0} };
 
@@ -237,12 +236,11 @@ image **load_alphabet()
 
 void draw_detections(image im, int num, float thresh, box *boxes, float **probs, float **masks, char **names, image **alphabet, int classes)
 {
-    int i,j;
 
-    for(i = 0; i < num; ++i){
+    for(int i = 0; i < num; ++i){
         char labelstr[4096] = {0};
         int class = -1;
-        for(j = 0; j < classes; ++j){
+        for(int j = 0; j < classes; ++j){
             if (probs[i][j] > thresh){
                 if (class < 0) {
                     strcat(labelstr, names[j]);
@@ -256,13 +254,6 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
         }
         if(class >= 0){
             int width = im.h * .006;
-
-            /*
-               if(0){
-               width = pow(prob, 1./2.)*10+1;
-               alphabet = 0;
-               }
-             */
 
             //printf("%d %s: %.0f%%\n", i, names[class], prob*100);
             int offset = class*123457 % classes;
@@ -506,38 +497,19 @@ void rgbgr_image(image im)
 #ifdef OPENCV
 void show_image_cv(image p, const char *name, IplImage *disp)
 {
-    int x,y,k;
     if(p.c == 3) rgbgr_image(p);
-    //normalize_image(copy);
-
-    char buff[256];
-    //sprintf(buff, "%s (%d)", name, windows);
-    sprintf(buff, "%s", name);
 
     int step = disp->widthStep;
-    cvNamedWindow(buff, CV_WINDOW_NORMAL); 
-    //cvMoveWindow(buff, 100*(windows%10) + 200*(windows/10), 100*(windows%10));
-    ++windows;
-    for(y = 0; y < p.h; ++y){
-        for(x = 0; x < p.w; ++x){
-            for(k= 0; k < p.c; ++k){
+    cvNamedWindow(name, CV_WINDOW_NORMAL);
+
+    for(int y = 0; y < p.h; ++y){
+        for(int x = 0; x < p.w; ++x){
+            for(int k= 0; k < p.c; ++k){
                 disp->imageData[y*step + x*p.c + k] = (unsigned char)(get_pixel(p,x,y,k)*255);
             }
         }
     }
-    if(0){
-        int w = 448;
-        int h = w*p.h/p.w;
-        if(h > 1000){
-            h = 1000;
-            w = h*p.w/p.h;
-        }
-        IplImage *buffer = disp;
-        disp = cvCreateImage(cvSize(w, h), buffer->depth, buffer->nChannels);
-        cvResize(buffer, disp, CV_INTER_LINEAR);
-        cvReleaseImage(&buffer);
-    }
-    cvShowImage(buff, disp);
+    cvShowImage(name, disp);
 }
 #endif
 
@@ -665,7 +637,7 @@ void save_image_jpg(image p, const char *name)
 void save_image_png(image im, const char *name)
 {
     char buff[256];
-    //sprintf(buff, "%s (%d)", name, windows);
+
     sprintf(buff, "%s.png", name);
     unsigned char *data = calloc(im.w*im.h*im.c, sizeof(char));
     int i,k;
