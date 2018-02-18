@@ -33,8 +33,9 @@
 
 # lwang ignore
 .idea/
+build/
 rasp_detection/3rdpart/
 rasp_detection/darknet_modify/*.weights
 cmake-build-debug/
-CMakeLists.txt
+lw.log
 rasp_detection/darknet_modify/*.jpg

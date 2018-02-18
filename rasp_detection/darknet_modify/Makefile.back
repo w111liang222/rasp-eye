@@ -4,7 +4,6 @@ OPENCV=1
 OPENMP=1
 DEBUG=0
 
-
 ARCH= -gencode arch=compute_30,code=sm_30 \
       -gencode arch=compute_35,code=sm_35 \
       -gencode arch=compute_50,code=[sm_50,compute_50] \
@@ -13,30 +12,20 @@ ARCH= -gencode arch=compute_30,code=sm_30 \
 # This is what I use, uncomment if you know your arch and want to specify
 # ARCH= -gencode arch=compute_52,code=compute_52
 
-ifeq (${CC}, )
-CC=gcc
-endif
-ifeq (${AR}, )
-AR=ar
-endif
-ifeq (${ARFLAGS}, )
-ARFLAGS=rcs
-endif
-
-OPTS+=-Ofast
-
 VPATH=./src/:./examples
 SLIB=libdarknet.so
 ALIB=libdarknet.a
 EXEC=darknet
 OBJDIR=./obj/
 
-
-NVCC=nvcc
-
-LDFLAGS+= -L/opt/OpenBLAS/lib -lm -pthread -lopenblas
-COMMON+= -Iinclude/ -Isrc/ -I/opt/OpenBLAS/include/
-CFLAGS+=-Wall -Wno-unknown-pragmas -Wfatal-errors -fPIC
+CC=gcc
+NVCC=nvcc 
+AR=ar
+ARFLAGS=rcs
+OPTS=-Ofast
+LDFLAGS= -L/opt/OpenBLAS/lib -lm -pthread -lopenblas 
+COMMON= -Iinclude/ -Isrc/ -I/opt/OpenBLAS/include/
+CFLAGS=-Wall -Wno-unknown-pragmas -Wfatal-errors -fPIC
 
 ifeq ($(OPENMP), 1) 
 CFLAGS+= -fopenmp
@@ -76,11 +65,11 @@ endif
 
 EXECOBJ = $(addprefix $(OBJDIR), $(EXECOBJA))
 OBJS = $(addprefix $(OBJDIR), $(OBJ))
-DEPS = $(wildcard src/*.h) include/darknet.h
+DEPS = $(wildcard src/*.h) Makefile include/darknet.h
 
 #all: obj $(SLIB) $(ALIB) $(EXEC)
 all: obj  $(SLIB) $(ALIB) $(EXEC)
-	echo ${DEPS}
+
 
 $(EXEC): $(EXECOBJ) $(ALIB)
 	$(CC) $(COMMON) $(CFLAGS) $^ -o $@ $(LDFLAGS) $(ALIB)

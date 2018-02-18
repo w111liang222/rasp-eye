@@ -26,9 +26,18 @@ Options:\n\
 ";
 int main(int argc, char **argv)
 {
+    if(argc<2){
+        printf("Please use -h for detail\n");
+        return 0;
+    }
     if(find_arg(argc,argv, "-h")){
         printf(usage);
-        exit(0);
+        return 0;
+    }
+
+    if(0!=strcmp(argv[1], "image") && 0!=strcmp(argv[1], "video")){
+        printf("The first para must be 'image' or 'video'\n");
+        return 0;
     }
 
     //determine gpu index
