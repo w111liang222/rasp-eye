@@ -3,8 +3,9 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
-extern void run_detector(int argc, char **argv);
+extern void run_detector(int argc, char **argv, globals* global_ptr);
 static const char usage[]="\
 Usage: ./darnet image/video [Options]\n\
 Options:\n\
@@ -26,6 +27,12 @@ Options:\n\
 ";
 int main(int argc, char **argv)
 {
+    globals* global_ptr = mjpg_streamer_startup();
+    if(NULL==global_ptr){
+        printf("mjpg_streamer Init failed\n");
+        return 0;
+    }
+
     if(argc<2){
         printf("Please use -h for detail\n");
         return 0;
@@ -54,7 +61,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-    run_detector(argc, argv);
+    run_detector(argc, argv, global_ptr);
 
     return 0;
 }

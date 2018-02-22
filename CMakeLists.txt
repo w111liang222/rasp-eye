@@ -1,15 +1,27 @@
 cmake_minimum_required(VERSION 3.9)
+
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/rasp_detection/darknet_modify/mjpg-streamer/cmake ${CMAKE_MODULE_PATH})
+include(CheckLibraryExists)
+include(CheckIncludeFiles)
+include(FeatureSummary)
+include(mjpg_streamer_utils)
+
 project(rasp_eye)
 
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_BUILD_TYPE "Release")
+
+
 
 include_directories(/home/lwang/rasp-eye/rasp_detection/darknet_modify/include)
+include_directories(/home/lwang/rasp-eye/rasp_detection/darknet_modify/mjpg-streamer)
 include_directories(/usr/local/include)
 
 FIND_PACKAGE(CUDA REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
+find_library(JPEG_LIB jpeg)
 
 ADD_DEFINITIONS(-DOPENCV)
 ADD_DEFINITIONS(-DGPU)
@@ -22,8 +34,24 @@ set(GENCODE
         -gencode arch=compute_52,code=[sm_52,compute_52]
 )
 
-set(CMAKE_CXX_FLAGS "-Wall -Wno-unknown-pragmas -Wfatal-errors -Ofast -L/usr/local/cuda/lib64 -L/opt/OpenBLAS/lib")
-set(CMAKE_C_FLAGS "-Wall -Wno-unknown-pragmas -Wfatal-errors -Ofast -L/usr/local/lib -L/usr/local/cuda/lib64 -L/opt/OpenBLAS/lib")
+set(COMPILE_DEFINITIONS -Werror -Wall)
+set(CMAKE_CXX_FLAGS "-Ofast -L/usr/local/cuda/lib64 -L/opt/OpenBLAS/lib")
+set(CMAKE_C_FLAGS "-Ofast -L/usr/local/lib -L/usr/local/cuda/lib64 -L/opt/OpenBLAS/lib")
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
+
+#
+# Input plugins
+#
+
+add_subdirectory(rasp_detection/darknet_modify/mjpg-streamer/plugins/input_http)
+add_subdirectory(rasp_detection/darknet_modify/mjpg-streamer/plugins/input_opencv)
+
+#
+# Output plugins
+#
+
+add_subdirectory(rasp_detection/darknet_modify/mjpg-streamer/plugins/output_http)
+add_subdirectory(rasp_detection/darknet_modify/mjpg-streamer/plugins/output_rtsp)
 
 CUDA_ADD_EXECUTABLE(rasp_eye
         rasp_detection/darknet_modify/examples/darknet.c
@@ -112,6 +140,7 @@ CUDA_ADD_EXECUTABLE(rasp_eye
         rasp_detection/darknet_modify/src/tree.h
         rasp_detection/darknet_modify/src/utils.c
         rasp_detection/darknet_modify/src/utils.h
+        #CUDA
         rasp_detection/darknet_modify/src/activation_kernels.cu
         rasp_detection/darknet_modify/src/avgpool_layer_kernels.cu
         rasp_detection/darknet_modify/src/blas_kernels.cu
@@ -122,6 +151,10 @@ CUDA_ADD_EXECUTABLE(rasp_eye
         rasp_detection/darknet_modify/src/dropout_layer_kernels.cu
         rasp_detection/darknet_modify/src/im2col_kernels.cu
         rasp_detection/darknet_modify/src/maxpool_layer_kernels.cu
+        #MJPEG Streamer
+        rasp_detection/darknet_modify/mjpg-streamer/mjpg_streamer.c
+        rasp_detection/darknet_modify/mjpg-streamer/mjpg_streamer.h
+        rasp_detection/darknet_modify/mjpg-streamer/utils.c
         OPTIONS ${GENCODE})
 
 TARGET_LINK_LIBRARIES(rasp_eye openblas)

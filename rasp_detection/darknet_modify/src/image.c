@@ -509,7 +509,6 @@ void show_image_cv(image p, const char *name, IplImage *disp)
             }
         }
     }
-    cvShowImage(name, disp);
 }
 #endif
 
