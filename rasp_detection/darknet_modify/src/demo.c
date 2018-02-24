@@ -48,10 +48,8 @@ void *display_in_thread(void *ptr)
     show_image_cv(*im_ptr, "Rasp-eye", ipl);
     cvShowImage("Rasp-eye", ipl);
 
-    int c = cvWaitKey(1);
-    if (c == 27) {//ESC quit the program
-        demo_done = 1;
-    }
+    cvWaitKey(1);
+
     cvReleaseImage(&ipl);
     return 0;
 }
@@ -85,7 +83,7 @@ void *detect_in_thread(void *ptr)
         pthread_mutex_lock(&detect_mutex);
         if(0==frame_done){
             pthread_mutex_unlock(&detect_mutex);
-            usleep(2000);
+            usleep(1000);
             continue;
         }
         memcpy(img_process.data, buff.data, buff.h*buff.w*buff.c*sizeof(float));
@@ -137,7 +135,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
     demo_global_ptr = global_ptr;
     pthread_mutex_init(&detect_mutex, NULL);
 
-    demo_frame = 5;//average the prediction results
+    demo_frame = 3;//average the prediction results
     demo_names = names;
     demo_alphabet = load_alphabet();
     demo_classes = classes;
@@ -173,7 +171,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
     double im_origin_width,im_origin_height;
     im_origin_width = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_WIDTH);
     im_origin_height = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_HEIGHT);
-    printf("Image Width=%d,Height=%d\n",(int)im_origin_width,(int)im_origin_height);
+    printf("Input Video Width=%d,Height=%d\n",(int)im_origin_width,(int)im_origin_height);
 
     cvNamedWindow("Rasp-eye", CV_WINDOW_NORMAL);
     if(fullscreen){

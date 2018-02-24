@@ -153,13 +153,9 @@ globals* mjpg_streamer_startup(void)
     strcpy(argv[1],"-o");
     strcpy(argv[2],"output_http.so -w ./www -p 8080");
     strcpy(argv[3],"-i");
-    strcpy(argv[4],"input_opencv.so -d /dev/video1");
+    strcpy(argv[4],"input_opencv.so");
 
 
-
-
-
-    //char *input  = "input_uvc.so --resolution 640x480 --fps 5 --device /dev/video0";
     char *input[MAX_INPUT_PLUGINS];
     char *output[MAX_OUTPUT_PLUGINS];
 
@@ -353,9 +349,6 @@ globals* mjpg_streamer_startup(void)
         syslog(LOG_INFO, "starting output plugin: %s (ID: %02d)", global.out[i].plugin, global.out[i].param.id);
         global.out[i].run(global.out[i].param.id);
     }
-
-    /* wait for signals */
-    //pause();
 
     return &global;
 }

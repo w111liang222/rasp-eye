@@ -85,7 +85,7 @@ void run_detector(int argc, char **argv, globals* global_ptr)
                                        "yolo-voc.weights",
                                        "tiny-yolo-voc.weights"};
 
-    float thresh = find_float_arg(argc, argv, "-thresh", .24);
+    float thresh = find_float_arg(argc, argv, "-thresh", .40);
     float hier_thresh = find_float_arg(argc, argv, "-hier", .5);
 
     int fullscreen = find_arg(argc, argv, "-fullscreen");
