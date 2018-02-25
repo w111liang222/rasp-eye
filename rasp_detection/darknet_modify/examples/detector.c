@@ -72,7 +72,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     }
 }
 
-void run_detector(int argc, char **argv)
+void run_detector(int argc, char **argv, globals* global_ptr)
 {
     static char detector_data[][50] ={"cfg/coco.data",
                                       "cfg/voc.data"};
@@ -85,7 +85,7 @@ void run_detector(int argc, char **argv)
                                        "yolo-voc.weights",
                                        "tiny-yolo-voc.weights"};
 
-    float thresh = find_float_arg(argc, argv, "-thresh", .24);
+    float thresh = find_float_arg(argc, argv, "-thresh", .40);
     float hier_thresh = find_float_arg(argc, argv, "-hier", .5);
 
     int fullscreen = find_arg(argc, argv, "-fullscreen");
@@ -138,7 +138,7 @@ void run_detector(int argc, char **argv)
         int classes = option_find_int(options, "classes", 20);
         char *name_list = option_find_str(options, "names", "data/names.list");
         char **names = get_labels(name_list);
-        demo(cfg, weights, thresh, filename, names, classes, hier_thresh, width, height, fps, fullscreen);
+        demo(cfg, weights, thresh, filename, names, classes, hier_thresh, width, height, fps, fullscreen, global_ptr);
     }else{
         printf("Error option, use -h for detail info\n");
     }

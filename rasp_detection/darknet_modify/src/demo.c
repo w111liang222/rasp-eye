@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 
+
 #define DEMO 1
 
 #ifdef OPENCV
@@ -10,6 +11,7 @@
 pthread_mutex_t detect_mutex;
 int frame_done=0;
 
+static globals* demo_global_ptr;
 static char **demo_names;
 static image **demo_alphabet;
 static int demo_classes;
@@ -32,11 +34,22 @@ void *display_in_thread(void *ptr)
 
 
     IplImage  * ipl = cvCreateImage(cvSize(im_ptr->w,im_ptr->h), IPL_DEPTH_8U, im_ptr->c);
-    show_image_cv(*im_ptr, "Rasp-eye", ipl);
-    int c = cvWaitKey(1);
-    if (c == 27) {//ESC quit the program
-        demo_done = 1;
+    if(NULL==demo_global_ptr->in[0].ipl_net){
+        demo_global_ptr->in[0].ipl_net = cvCreateImage(cvSize(im_ptr->w,im_ptr->h), IPL_DEPTH_8U, im_ptr->c);
     }
+    //copy to global buffer
+    pthread_mutex_lock(&demo_global_ptr->in[0].net);
+
+    cvCopy(ipl,(IplImage  *)demo_global_ptr->in[0].ipl_net,NULL);
+
+    pthread_cond_broadcast(&demo_global_ptr->in[0].net_update);
+    pthread_mutex_unlock(&demo_global_ptr->in[0].net);
+
+    show_image_cv(*im_ptr, "Rasp-eye", ipl);
+    cvShowImage("Rasp-eye", ipl);
+
+    cvWaitKey(1);
+
     cvReleaseImage(&ipl);
     return 0;
 }
@@ -70,7 +83,7 @@ void *detect_in_thread(void *ptr)
         pthread_mutex_lock(&detect_mutex);
         if(0==frame_done){
             pthread_mutex_unlock(&detect_mutex);
-            usleep(2000);
+            usleep(1000);
             continue;
         }
         memcpy(img_process.data, buff.data, buff.h*buff.w*buff.c*sizeof(float));
@@ -116,12 +129,13 @@ void *detect_in_thread(void *ptr)
     return 0;
 }
 
-void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char **names, int classes, float hier, int w, int h, int frames, int fullscreen)
+void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char **names, int classes, float hier, int w, int h, int frames, int fullscreen, globals* global_ptr)
 {
 
+    demo_global_ptr = global_ptr;
     pthread_mutex_init(&detect_mutex, NULL);
 
-    demo_frame = 5;//average the prediction results
+    demo_frame = 3;//average the prediction results
     demo_names = names;
     demo_alphabet = load_alphabet();
     demo_classes = classes;
@@ -157,7 +171,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
     double im_origin_width,im_origin_height;
     im_origin_width = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_WIDTH);
     im_origin_height = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_HEIGHT);
-    printf("Image Width=%d,Height=%d\n",(int)im_origin_width,(int)im_origin_height);
+    printf("Input Video Width=%d,Height=%d\n",(int)im_origin_width,(int)im_origin_height);
 
     cvNamedWindow("Rasp-eye", CV_WINDOW_NORMAL);
     if(fullscreen){
