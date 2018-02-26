@@ -2,7 +2,7 @@
 #include "utils.h"
 #include <unistd.h>
 
-
+extern void get_remote_image(IplImage ** ipl);
 
 #define DEMO 1
 
@@ -184,8 +184,23 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
     net = load_network(cfgfile, weightfile, 0);
     set_batch_network(net, 1);
 
+    if(1){
+        //remote image capture
+        while(1){
+            IplImage* src = NULL;
+            get_remote_image(&src);
+            if(NULL==src){
+                printf("Waiting for full image complete!\n");
+                continue;
+            }
+            buff = ipl_to_image(src);
+            rgbgr_image(buff);
+            break;
+        }
+    }else{
+        buff = get_image_from_stream(cap);
+    }
 
-    buff = get_image_from_stream(cap);
     image img_cap = copy_image(buff);
 
     //create detect thread
@@ -196,7 +211,16 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
     double demo_time = what_time_is_it_now();
     while(!demo_done){
 
-        if(0==fill_image_from_stream(cap, img_cap)) break;
+        //remote image capture
+        if(1){
+            IplImage* src = NULL;
+            get_remote_image(&src);
+            if(NULL==src)   continue;
+            ipl_into_image(src, img_cap);
+            rgbgr_image(img_cap);
+        }else{
+            if(0==fill_image_from_stream(cap, img_cap)) break;
+        }
 
         //update buff
         pthread_mutex_lock(&detect_mutex);

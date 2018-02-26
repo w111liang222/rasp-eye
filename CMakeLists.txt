@@ -13,11 +13,11 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_BUILD_TYPE "Release")
 
+set(COMPILE_DEFINITIONS -Werror -Wall)
+set(CMAKE_CXX_FLAGS "-Ofast")
+set(CMAKE_C_FLAGS "-Ofast")
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
 
-
-include_directories(/home/lwang/rasp-eye/rasp_detection/darknet_modify/include)
-include_directories(/home/lwang/rasp-eye/rasp_detection/darknet_modify/mjpg-streamer)
-include_directories(/usr/local/include)
 
 FIND_PACKAGE(CUDA REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
@@ -34,10 +34,17 @@ set(GENCODE
         -gencode arch=compute_52,code=[sm_52,compute_52]
 )
 
-set(COMPILE_DEFINITIONS -Werror -Wall)
-set(CMAKE_CXX_FLAGS "-Ofast -L/usr/local/cuda/lib64 -L/opt/OpenBLAS/lib")
-set(CMAKE_C_FLAGS "-Ofast -L/usr/local/lib -L/usr/local/cuda/lib64 -L/opt/OpenBLAS/lib")
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
+include_directories(/home/lwang/rasp-eye/rasp_detection/darknet_modify/include)
+include_directories(/home/lwang/rasp-eye/rasp_detection/darknet_modify/mjpg-streamer)
+include_directories(/usr/local/include)
+include_directories(/usr/local/include/libavcodec)
+include_directories(/usr/local/include/libavformat)
+include_directories(/usr/local/include/libswscale)
+
+
+link_directories(/usr/local/cuda/lib64)
+link_directories(/opt/OpenBLAS/lib)
+link_directories(/usr/lib/x86_64-linux-gnu)
 
 #
 # Input plugins
@@ -155,8 +162,15 @@ CUDA_ADD_EXECUTABLE(rasp_eye
         rasp_detection/darknet_modify/mjpg-streamer/mjpg_streamer.c
         rasp_detection/darknet_modify/mjpg-streamer/mjpg_streamer.h
         rasp_detection/darknet_modify/mjpg-streamer/utils.c
+
+        rasp_detection/darknet_modify/h264decoder/H264Decoder.cpp
+        rasp_detection/darknet_modify/h264decoder/H264Decoder.h
+        rasp_detection/darknet_modify/h264decoder/video_decode.cpp
+
         OPTIONS ${GENCODE})
 
 TARGET_LINK_LIBRARIES(rasp_eye openblas)
 TARGET_LINK_LIBRARIES(rasp_eye ${OpenCV_LIBS})
 TARGET_LINK_LIBRARIES(rasp_eye cuda cudart cublas curand cudnn)
+TARGET_LINK_LIBRARIES(rasp_eye avcodec avformat swscale avutil camkit)
+
