@@ -3,6 +3,7 @@ DJI 入职作业
 
 ## 说明（基于树莓派的远程智能相机）
 树莓派采集视频，由后台GPU服务器进行目标检测。用户打开浏览器访问远程视频及检测结果。
+
 本程序分为树莓派与Ubuntu16.04 PC两部分应用程序
 
 ### 树莓派:
@@ -15,7 +16,7 @@ DJI 入职作业
 2) 基于YOLO网络检测视频中的目标。
 3) 输出MJPEG视频流，并推送至HTTP服务器。
 <div align="center">
-  <img src="https://github.com/w111liang222/rasp-eye/blob/master/images/flowchart.png"><br><br>
+  <img src="https://github.com/w111liang222/rasp-eye/blob/master/images/flowchart.jpg"><br><br>
 </div>
 
 
@@ -24,7 +25,7 @@ DJI 入职作业
 ### 树莓派:
 
 ### Ubuntu PC:
-CUDA-8.0, CUDNN, OpenBLAS, OpenCV3.3.1, CMake, FFmpeg
+CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg
 
 ## 编译
 ```shell
@@ -61,6 +62,7 @@ Options:
 
 ## Reference
 [Darknet](https://pjreddie.com/darknet/)
+
 [MJPEG Streamer](https://github.com/jacksonliam/mjpg-streamer)
 
 ## Contact
