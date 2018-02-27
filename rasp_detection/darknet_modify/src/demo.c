@@ -1,8 +1,9 @@
 #include "network.h"
 #include "utils.h"
+#include "layer.h"
 #include <unistd.h>
 
-extern void get_remote_image(IplImage ** ipl);
+extern void get_remote_image(IplImage ** ipl, const char* ip_address, const int port);
 
 #define DEMO 1
 
@@ -27,8 +28,14 @@ static int demo_frame = 0;
 static int demo_detections = 0;
 static int demo_done = 0;
 
+struct net_config{
+    char *cfg;
+    char *weight;
+};
+
 void *display_in_thread(void *ptr)
 {
+
     image *im_ptr= (image*)ptr;
     draw_detections(*im_ptr, demo_detections, demo_thresh, boxes, probs, 0, demo_names, demo_alphabet, demo_classes);
 
@@ -74,18 +81,29 @@ void *detect_in_thread(void *ptr)
     boxes = (box *)calloc(l.w*l.h*l.n, sizeof(box));
     demo_detections = l.n*l.w*l.h;
 
-    image buff_letter = letterbox_image(buff, net->w, net->h);
-    image img_process = copy_image(buff);
+    image buff_letter,img_process;
+    while(1){
+        pthread_mutex_lock(&detect_mutex);
+
+        if(0==frame_done){
+            pthread_mutex_unlock(&detect_mutex);
+            usleep(5000);
+            continue;
+        }
+        buff_letter = letterbox_image(buff, net->w, net->h);
+        img_process = copy_image(buff);
+        cvNamedWindow("Rasp-eye", CV_WINDOW_NORMAL);
+        cvResizeWindow("Rasp-eye", buff.w, buff.h);
+
+        pthread_mutex_unlock(&detect_mutex);
+        break;
+    }
 
     double demo_time = what_time_is_it_now();
     while(!demo_done){
         //get newest image
         pthread_mutex_lock(&detect_mutex);
-        if(0==frame_done){
-            pthread_mutex_unlock(&detect_mutex);
-            usleep(1000);
-            continue;
-        }
+
         memcpy(img_process.data, buff.data, buff.h*buff.w*buff.c*sizeof(float));
         frame_done=0;
         pthread_mutex_unlock(&detect_mutex);
@@ -129,7 +147,20 @@ void *detect_in_thread(void *ptr)
     return 0;
 }
 
-void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char **names, int classes, float hier, int w, int h, int frames, int fullscreen, globals* global_ptr)
+void *net_loading_in_thread(void *ptr){
+    struct net_config *net_ptr = (struct net_config *)ptr;
+
+    printf("Load Network...\n");
+    net = load_network(net_ptr->cfg, net_ptr->weight, 0);
+    set_batch_network(net, 1);
+
+    //create detect thread
+    pthread_t detect_thread;
+    if(pthread_create(&detect_thread, 0, detect_in_thread, 0)) error("Thread creation failed");
+    return NULL;
+}
+
+void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char *ip_address, int port, char **names, int classes, float hier, int w, int h, int frames, globals* global_ptr)
 {
 
     demo_global_ptr = global_ptr;
@@ -144,7 +175,13 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
 
     srand(2222222);
 
-    // Initial Opencv
+    struct net_config net_conf;
+    net_conf.cfg = cfgfile;
+    net_conf.weight = weightfile;
+    pthread_t net_loading_thread;
+    if(pthread_create(&net_loading_thread, 0, net_loading_in_thread, &net_conf)) error("Thread creation failed");
+
+    // Initial Capture
     CvCapture * cap;
     if(filename){
         printf("Video file: %s\n", filename);
@@ -162,33 +199,20 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
         if(frames){
             cvSetCaptureProperty(cap, CV_CAP_PROP_FPS, frames);
         }
+
     }else{
-        error("No Video Input!\n");
-        exit(1);
+        printf("Remote video from %s:%d\n",ip_address,port);
     }
 
-    //Get Image Size
-    double im_origin_width,im_origin_height;
-    im_origin_width = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_WIDTH);
-    im_origin_height = cvGetCaptureProperty(cap,CV_CAP_PROP_FRAME_HEIGHT);
-    printf("Input Video Width=%d,Height=%d\n",(int)im_origin_width,(int)im_origin_height);
-
-    cvNamedWindow("Rasp-eye", CV_WINDOW_NORMAL);
-    if(fullscreen){
-        cvSetWindowProperty("Rasp-eye", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-    } else {
-        cvResizeWindow("Rasp-eye", im_origin_width, im_origin_height);
-    }
-
-    printf("Load Network...\n");
-    net = load_network(cfgfile, weightfile, 0);
-    set_batch_network(net, 1);
-
-    if(1){
+    //capture fisrt image for initialize
+    pthread_mutex_lock(&detect_mutex);
+    if(filename){
+        buff = get_image_from_stream(cap);
+    }else{
         //remote image capture
         while(1){
             IplImage* src = NULL;
-            get_remote_image(&src);
+            get_remote_image(&src, ip_address, port);
             if(NULL==src){
                 printf("Waiting for full image complete!\n");
                 continue;
@@ -197,36 +221,41 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
             rgbgr_image(buff);
             break;
         }
-    }else{
-        buff = get_image_from_stream(cap);
     }
+    frame_done=1;
+    pthread_mutex_unlock(&detect_mutex);
+
+    printf("Input Video Width=%d,Height=%d\n",buff.w,buff.h);
 
     image img_cap = copy_image(buff);
-
-    //create detect thread
-    pthread_t detect_thread;
-    if(pthread_create(&detect_thread, 0, detect_in_thread, 0)) error("Thread creation failed");
 
 
     double demo_time = what_time_is_it_now();
     while(!demo_done){
 
-        //remote image capture
-        if(1){
-            IplImage* src = NULL;
-            get_remote_image(&src);
-            if(NULL==src)   continue;
-            ipl_into_image(src, img_cap);
-            rgbgr_image(img_cap);
+        IplImage* src = NULL;
+        if(filename){
+            src = cvQueryFrame(cap);
+            if (NULL==src) continue;
+
         }else{
-            if(0==fill_image_from_stream(cap, img_cap)) break;
+            //remote image capture
+            get_remote_image(&src, ip_address, port);
+            if(NULL==src)   continue;
+
         }
+
+        ipl_into_image(src, img_cap);
+        rgbgr_image(img_cap);
 
         //update buff
         pthread_mutex_lock(&detect_mutex);
         memcpy(buff.data, img_cap.data, img_cap.h*img_cap.w*img_cap.c*sizeof(float));
         frame_done=1;
         pthread_mutex_unlock(&detect_mutex);
+
+        cvShowImage("Raw", src);
+        cvWaitKey(1);
 
         v_fps = 1./(what_time_is_it_now() - demo_time);
         demo_time = what_time_is_it_now();

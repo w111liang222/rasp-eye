@@ -1,6 +1,6 @@
 #include "darknet.h"
 
-void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, int fullscreen)
+void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh)
 {
     list *options = read_data_cfg(datacfg);
     char *name_list = option_find_str(options, "names", "data/names.list");
@@ -55,9 +55,6 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         save_image(im, "predictions");
 #ifdef OPENCV
             cvNamedWindow("predictions", CV_WINDOW_NORMAL);
-            if(fullscreen){
-                cvSetWindowProperty("predictions", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-            }
             show_image(im, "predictions");
             cvWaitKey(0);
             cvDestroyAllWindows();
@@ -88,7 +85,6 @@ void run_detector(int argc, char **argv, globals* global_ptr)
     float thresh = find_float_arg(argc, argv, "-thresh", .40);
     float hier_thresh = find_float_arg(argc, argv, "-hier", .5);
 
-    int fullscreen = find_arg(argc, argv, "-fullscreen");
     int width = find_int_arg(argc, argv, "-w", 0);
     int height = find_int_arg(argc, argv, "-h", 0);
     int fps = find_int_arg(argc, argv, "-fps", 0);
@@ -97,11 +93,21 @@ void run_detector(int argc, char **argv, globals* global_ptr)
     char *cfg=NULL;
     char *weights=NULL;
 
+    char *ip_address=NULL;
+    int port=0;
     char *filename = find_char_arg(argc, argv, "-i", 0);
     if(NULL==filename){
         printf("Please use '-i' to choose input file, use -h for detail info\n");
         return;
     }
+
+    if(strchr(filename,':')){
+        size_t tmp = (size_t)(strchr(filename,':')-filename);
+        ip_address = strndup(filename, tmp);//TODO free ip_address
+        port = atoi(filename+tmp+1);
+        filename = NULL;
+    }
+
 
     char *detector_type = find_char_arg(argc, argv, "-d", 0);
     if(NULL==detector_type){
@@ -132,13 +138,13 @@ void run_detector(int argc, char **argv, globals* global_ptr)
     printf("Select Detector:%s\n",detector_type);
 
 
-    if(0==strcmp(argv[1], "image")) test_detector(datacfg, cfg, weights, filename, thresh, hier_thresh, fullscreen);
+    if(0==strcmp(argv[1], "image")) test_detector(datacfg, cfg, weights, filename, thresh, hier_thresh);
     else if(0==strcmp(argv[1], "video")) {
         list *options = read_data_cfg(datacfg);
         int classes = option_find_int(options, "classes", 20);
         char *name_list = option_find_str(options, "names", "data/names.list");
         char **names = get_labels(name_list);
-        demo(cfg, weights, thresh, filename, names, classes, hier_thresh, width, height, fps, fullscreen, global_ptr);
+        demo(cfg, weights, thresh, filename, ip_address, port, names, classes, hier_thresh, width, height, fps, global_ptr);
     }else{
         printf("Error option, use -h for detail info\n");
     }

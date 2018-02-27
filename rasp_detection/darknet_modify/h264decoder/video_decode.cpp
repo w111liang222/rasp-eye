@@ -9,7 +9,7 @@ using namespace std;
 
 extern "C" {
 
-
+//#define USE_CAM_KIT
 
 #ifdef USE_CAM_KIT
 int WIDTH=640,HEIGHT=480;
@@ -53,7 +53,7 @@ void camkit_init(void){
     encp.chroma_interleave = 0;
     encp.fps = 30;
     encp.gop = 30;
-    encp.bitrate = 800;
+    encp.bitrate = 1600;
 
 
     caphandle = capture_open(capp);
@@ -120,10 +120,10 @@ void get_buffer(void **buf,int *size){
 }
 #endif
 
-void get_remote_image(IplImage ** ipl) {
+void get_remote_image(IplImage ** ipl, const char* ip_address, const int port) {
 
     void *buf;
-    int len;
+    int len = 0;
     static H264Decoder decoder;
 
     //receive buffer from tcp
@@ -133,7 +133,7 @@ void get_remote_image(IplImage ** ipl) {
 #endif
 
     decoder.decode((unsigned char*)buf, len);
-    decoder.play();
+    //decoder.play();
     decoder.getIpl(ipl);
 
     return;

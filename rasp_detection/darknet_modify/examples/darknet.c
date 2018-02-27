@@ -15,7 +15,6 @@ Options:\n\
                 voc\n\
                 tiny-voc\n\
   -i            specify the input file\n\
-  -fullscreen   display in fullscreen\n\
   -w            set image width\n\
   -h            set image height\n\
   -fps          set fps of video\n\

@@ -26,7 +26,6 @@ void H264Decoder::init() {
         c->flags |= AV_CODEC_CAP_TRUNCATED;
     }*/
 
-    //初始化解析器
     cp = av_parser_init(AV_CODEC_ID_H264);
     if (!cp){
         printf("Could not alloc parser failed!\n");
@@ -44,7 +43,6 @@ void H264Decoder::init() {
         exit(1);
     }
 
-    //存储解码后转换的RGB数据
     pFrameBGR = av_frame_alloc();
 
 
