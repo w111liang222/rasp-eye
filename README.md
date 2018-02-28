@@ -1,18 +1,20 @@
-# rasp-eye
+# rasp-eye tcp传输部分
 DJI 入职作业
 
 ## 说明（基于树莓派的远程智能相机）
 树莓派采集视频，由后台GPU服务器进行目标检测。用户打开浏览器访问远程视频及检测结果。
 
-本程序分为树莓派与Ubuntu16.04 PC两部分应用程序
+本分支处理传输相关程序
 
 ### 树莓派:
-1) 获取USB摄像头数据，采集接口为V4L2。
-2) 视频流编码格式采用H.264，基于FFmpeg库进行编码。
-3) 数据传输协议采用TCP协议，保证数据传输的可靠性。
-4) 基于ngrok实现内网穿透。
+1) 数据传输协议采用TCP协议，保证数据传输的可靠性。
+2) 树莓派作为Server，根据Client请求提供H.264视频流？
+
+### 谷歌云（Ubuntu 16.04）：
+1）搭建ngrok服务器，提供内网穿透功能
+
 ### Ubuntu PC:
-1) H.264视频解码。
+1) Ubuntu PC作为Client，向树莓派发出视频请求？
 2) 基于YOLO网络检测视频中的目标。
 3) 输出MJPEG视频流，并推送至HTTP服务器。
 <div align="center">
@@ -24,8 +26,8 @@ DJI 入职作业
 ## 依赖项
 ### 树莓派:
 
-### Ubuntu PC:
-CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg
+### 谷歌云：
+goalang
 
 ## 编译
 ```shell
@@ -61,12 +63,10 @@ Options:
 视频访问:http://127.0.0.1:8080/?action=stream
 
 ## Reference
-[Darknet](https://pjreddie.com/darknet/)
-
-[MJPEG Streamer](https://github.com/jacksonliam/mjpg-streamer)
+[ngrok](https://github.com/inconshreveable/ngrok.git)
 
 ## Contact
-15lwang@tongji.edu.cn
+david.yao.sh.dy@gmail.com
 
 ## License
 [GPL-3.0](LICENSE)

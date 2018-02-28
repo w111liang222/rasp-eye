@@ -1,7 +1,7 @@
 /*************************************************************************
  > File Name: Client.c
- > Author: 
- > Email: 
+ > Author: David Yao  
+ > Email: david.yao.sh.dy@gmail.com
  > Created Time: Wed 28 Feb 2018 14:08:38 CST
 ************************************************************************/
 #include <netinet/in.h>
