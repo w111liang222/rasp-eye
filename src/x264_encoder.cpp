@@ -180,4 +180,3 @@ bool x264Encoder::IsValid() const
 {
     return ((m_encoder != NULL) && (m_encoder->h != NULL));
 }
-

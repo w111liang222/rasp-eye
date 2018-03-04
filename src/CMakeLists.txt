@@ -6,10 +6,31 @@ MESSAGE(STATUS "CMAKE_INCLUDE_PATH dir:$ENV{CMAKE_INCLUDE_PATH}")
 
 
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl -lpthread")
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/src
+/usr/local/include/BasicUsageEnvironment
+/usr/local/include/groupsock
+/usr/local/include/liveMedia
+/usr/local/include/UsageEnvironment
+)
+
 ADD_EXECUTABLE(main main.cpp x264_encoder.cpp)
 
+LINK_LIBRARIES("/usr/local/lib/libgroupsock.a")
+LINK_LIBRARIES("/usr/local/lib/libBasicUsageEnvironment.a")
+LINK_LIBRARIES("/usr/local/lib/libUsageEnvironment.a")
+LINK_LIBRARIES("/usr/local/lib/libliveMedia.a")
+
+
 TARGET_LINK_LIBRARIES(main libx264.a)
+
+TARGET_LINK_LIBRARIES(
+main
+libgroupsock.a
+libBasicUsageEnvironment.a
+libUsageEnvironment.a
+libliveMedia.a
+)
 
 TARGET_LINK_LIBRARIES(
 main
