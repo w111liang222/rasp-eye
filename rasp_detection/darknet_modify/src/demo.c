@@ -10,6 +10,9 @@ extern void get_remote_image(IplImage ** ipl, const char* ip_address, const int 
 #ifdef OPENCV
 
 pthread_mutex_t detect_mutex;
+extern IplImage *cap_img;
+extern pthread_mutex_t cap_mutex;
+extern pthread_cond_t  cap_update;
 int frame_done=0;
 
 static globals* demo_global_ptr;
@@ -160,11 +163,13 @@ void *net_loading_in_thread(void *ptr){
     return NULL;
 }
 
-void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char *ip_address, int port, char **names, int classes, float hier, int w, int h, int frames, globals* global_ptr)
+void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char *ip_address, int port, char *rtsp_url, char **names, int classes, float hier, int w, int h, int frames, globals* global_ptr)
 {
 
     demo_global_ptr = global_ptr;
     pthread_mutex_init(&detect_mutex, NULL);
+
+
 
     demo_frame = 3;//average the prediction results
     demo_names = names;
@@ -185,7 +190,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
     CvCapture * cap;
     if(filename){
         printf("Video file: %s\n", filename);
-        cap = cvCaptureFromFile(filename);
+        cap = cvCreateFileCapture(filename);
         if(!cap) {
             fprintf(stderr,"Couldn't connect to video %s.\n",filename);
             exit(1);
@@ -200,15 +205,18 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
             cvSetCaptureProperty(cap, CV_CAP_PROP_FPS, frames);
         }
 
-    }else{
+    }else if(ip_address){
         printf("Remote video from %s:%d\n",ip_address,port);
+    }else if(rtsp_url){
+        printf("RTSP stream from %s\n",rtsp_url);
     }
 
     //capture fisrt image for initialize
     pthread_mutex_lock(&detect_mutex);
+
     if(filename){
         buff = get_image_from_stream(cap);
-    }else{
+    }else if(ip_address){
         //remote image capture
         while(1){
             IplImage* src = NULL;
@@ -221,7 +229,16 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
             rgbgr_image(buff);
             break;
         }
+    }else if(rtsp_url){
+        pthread_mutex_lock(&cap_mutex);
+        pthread_cond_wait(&cap_update, &cap_mutex);
+
+        buff = ipl_to_image(cap_img);
+        rgbgr_image(buff);
+
+        pthread_mutex_unlock(&cap_mutex);
     }
+
     frame_done=1;
     pthread_mutex_unlock(&detect_mutex);
 
@@ -233,19 +250,30 @@ void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, c
     double demo_time = what_time_is_it_now();
     while(!demo_done){
 
-        IplImage* src = NULL;
+        IplImage *src = NULL;
+
         if(filename){
             src = cvQueryFrame(cap);
             if (NULL==src) continue;
+            ipl_into_image(src, img_cap);
 
-        }else{
+        }else if(ip_address){
             //remote image capture
             get_remote_image(&src, ip_address, port);
             if(NULL==src)   continue;
+            ipl_into_image(src, img_cap);
 
+        }else if(rtsp_url){
+            pthread_mutex_lock(&cap_mutex);
+            pthread_cond_wait(&cap_update, &cap_mutex);
+
+            src = cap_img;
+            ipl_into_image(src, img_cap);
+
+            pthread_mutex_unlock(&cap_mutex);
         }
 
-        ipl_into_image(src, img_cap);
+        //
         rgbgr_image(img_cap);
 
         //update buff

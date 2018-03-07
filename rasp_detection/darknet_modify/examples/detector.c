@@ -69,6 +69,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     }
 }
 
+extern void rtsp_init(const char* url);
 void run_detector(int argc, char **argv, globals* global_ptr)
 {
     static char detector_data[][50] ={"cfg/coco.data",
@@ -95,18 +96,31 @@ void run_detector(int argc, char **argv, globals* global_ptr)
 
     char *ip_address=NULL;
     int port=0;
-    char *filename = find_char_arg(argc, argv, "-i", 0);
+    char *filename = find_char_arg(argc, argv, "-f", 0);
+    char *ipname = find_char_arg(argc, argv, "-i", 0);
+    char *rtsp_url = find_char_arg(argc, argv, "-r", 0);
+
     if(NULL==filename){
-        printf("Please use '-i' to choose input file, use -h for detail info\n");
-        return;
+        if(NULL==ipname){
+            if(NULL==rtsp_url){
+                printf("Please use '-i' or '-f' or '-r' to choose input file, use -h for detail info\n");
+                return;
+            }
+            //rtsp://ngrok.misaki.top:10087/H264live
+            //rtsp://184.72.239.149/vod/mp4://BigBuckBunny_175k.mov
+            printf("1\n");
+            rtsp_init(rtsp_url);
+            printf("2\n");
+        }
+        else if(strchr(ipname,':')){
+            size_t tmp = (size_t)(strchr(ipname,':')-ipname);
+            ip_address = strndup(ipname, tmp);//TODO free ip_address
+            port = atoi(ipname+tmp+1);
+            ipname = NULL;
+        }
     }
 
-    if(strchr(filename,':')){
-        size_t tmp = (size_t)(strchr(filename,':')-filename);
-        ip_address = strndup(filename, tmp);//TODO free ip_address
-        port = atoi(filename+tmp+1);
-        filename = NULL;
-    }
+
 
 
     char *detector_type = find_char_arg(argc, argv, "-d", 0);
@@ -144,7 +158,7 @@ void run_detector(int argc, char **argv, globals* global_ptr)
         int classes = option_find_int(options, "classes", 20);
         char *name_list = option_find_str(options, "names", "data/names.list");
         char **names = get_labels(name_list);
-        demo(cfg, weights, thresh, filename, ip_address, port, names, classes, hier_thresh, width, height, fps, global_ptr);
+        demo(cfg, weights, thresh, filename, ip_address, port, rtsp_url, names, classes, hier_thresh, width, height, fps, global_ptr);
     }else{
         printf("Error option, use -h for detail info\n");
     }

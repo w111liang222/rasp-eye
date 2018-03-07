@@ -40,7 +40,7 @@ Ubuntu PC的可执行程序为rasp_eye_pc
 ```shell
 ./rasp_eye_pc -h
 
-Usage: ./rasp_eye_pc image/video \[Options\]
+Usage: ./rasp_eye_pc image/video [Options]
 Options:
   -d            specify the detector to use
                 coco

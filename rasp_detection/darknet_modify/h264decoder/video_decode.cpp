@@ -1,10 +1,14 @@
 #include "H264Decoder.h"
 #include <fstream>
 #include <linux/videodev2.h>
+#include "vlc/libvlc.h"
+#include "vlc/libvlc_media.h"
+#include "vlc/libvlc_media_player.h"
 extern "C" {
 #include "camkit.h"
 }
 
+using namespace cv;
 using namespace std;
 
 extern "C" {
@@ -139,6 +143,66 @@ void get_remote_image(IplImage ** ipl, const char* ip_address, const int port) {
     return;
 }
 
+
+static int VIDEO_WIDTH = 640;
+static int VIDEO_HEIGHT = 480;
+static char * videobuf = 0;
+static char * videobuf_tmp = 0;
+IplImage *cap_img = NULL;
+pthread_mutex_t cap_mutex;
+pthread_cond_t  cap_update;
+
+void *lock(void *data, void**p_pixels)
+{
+    *p_pixels = videobuf;
+    return NULL;
+}
+void display(void *data, void *id)
+{
+    pthread_mutex_lock(&cap_mutex);
+    memcpy(videobuf_tmp,videobuf,VIDEO_WIDTH * VIDEO_HEIGHT *3);
+    cap_img->imageData = videobuf_tmp;
+    pthread_cond_broadcast(&cap_update);
+    pthread_mutex_unlock(&cap_mutex);
+}
+void unlock(void *data, void *id, void *const *p_pixels)
+{
+    (void)data;
+    assert(id == NULL);
+}
+
+void rtsp_init(const char* url){
+
+    libvlc_media_t* media = NULL;
+    static libvlc_media_player_t* mediaPlayer = NULL;
+    static libvlc_instance_t* instance = NULL;
+    char const* vlc_args[] =
+            {
+                    "-I",
+                    "dummy",
+                    ":network-caching=0",
+                    "--ignore-config",
+            };
+
+    cap_img = cvCreateImage(cvSize(VIDEO_WIDTH, VIDEO_HEIGHT), IPL_DEPTH_8U, 3);
+    pthread_mutex_init(&cap_mutex, NULL);
+
+
+    videobuf = (char*)malloc((VIDEO_WIDTH * VIDEO_HEIGHT) *3);
+    videobuf_tmp = (char*)malloc((VIDEO_WIDTH * VIDEO_HEIGHT) *3);
+    memset(videobuf, 0, (VIDEO_WIDTH * VIDEO_HEIGHT) *3);
+
+    instance = libvlc_new(sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
+    media = libvlc_media_new_location(instance, url);
+    mediaPlayer = libvlc_media_player_new_from_media(media);
+    libvlc_media_release(media);
+
+
+    libvlc_video_set_callbacks(mediaPlayer, lock, unlock, display, NULL);
+    libvlc_video_set_format(mediaPlayer, "RV24", VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_WIDTH*3);
+    libvlc_media_player_play(mediaPlayer);
+
+}
 
 }
 

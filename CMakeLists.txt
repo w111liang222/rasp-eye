@@ -45,6 +45,8 @@ include_directories(/usr/local/include/libswscale)
 link_directories(/usr/local/cuda/lib64)
 link_directories(/opt/OpenBLAS/lib)
 link_directories(/usr/lib/x86_64-linux-gnu)
+link_directories(/usr/lib/vlc)
+
 
 #
 # Input plugins
@@ -60,7 +62,7 @@ add_subdirectory(rasp_detection/darknet_modify/mjpg-streamer/plugins/input_openc
 add_subdirectory(rasp_detection/darknet_modify/mjpg-streamer/plugins/output_http)
 add_subdirectory(rasp_detection/darknet_modify/mjpg-streamer/plugins/output_rtsp)
 
-CUDA_ADD_EXECUTABLE(rasp_eye
+CUDA_ADD_EXECUTABLE(rasp_eye_pc
         rasp_detection/darknet_modify/examples/darknet.c
         rasp_detection/darknet_modify/examples/detector.c
         rasp_detection/darknet_modify/include/darknet.h
@@ -167,10 +169,12 @@ CUDA_ADD_EXECUTABLE(rasp_eye
         rasp_detection/darknet_modify/h264decoder/H264Decoder.h
         rasp_detection/darknet_modify/h264decoder/video_decode.cpp
 
+
         OPTIONS ${GENCODE})
 
-TARGET_LINK_LIBRARIES(rasp_eye openblas)
-TARGET_LINK_LIBRARIES(rasp_eye ${OpenCV_LIBS})
-TARGET_LINK_LIBRARIES(rasp_eye cuda cudart cublas curand cudnn)
-TARGET_LINK_LIBRARIES(rasp_eye avcodec avformat swscale avutil camkit)
+TARGET_LINK_LIBRARIES(rasp_eye_pc openblas)
+TARGET_LINK_LIBRARIES(rasp_eye_pc ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(rasp_eye_pc vlc)
+TARGET_LINK_LIBRARIES(rasp_eye_pc cuda cudart cublas curand cudnn)
+TARGET_LINK_LIBRARIES(rasp_eye_pc avcodec avformat swscale avutil camkit)
 

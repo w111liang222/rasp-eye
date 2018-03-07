@@ -175,7 +175,7 @@ void *worker_thread(void *arg)
 
         pthread_mutex_unlock(&in->net);
 
-        resize(src,src_resize,Size(480,320),0,0,CV_INTER_LINEAR);
+        resize(src,src_resize,Size(640,480),0,0,CV_INTER_LINEAR);
 
         // TODO: what to do if imencode returns an error?
         imencode(".jpg", src_resize, jpeg_buffer, compression_params);

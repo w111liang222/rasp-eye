@@ -644,7 +644,7 @@ void rescale_weights(layer l, float scale, float trans);
 void rgbgr_weights(layer l);
 image *get_weights(layer l);
 
-void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char *ip_address, int port, char **names, int classes, float hier, int w, int h, int frames, globals* global_ptr);
+void demo(char *cfgfile, char *weightfile, float thresh, const char *filename, char *ip_address, int port, char *rtsp_url, char **names, int classes, float hier, int w, int h, int frames, globals* global_ptr);
 void get_detection_boxes(layer l, int w, int h, float thresh, float **probs, box *boxes, int only_objectness);
 
 char *option_find_str(list *l, char *key, char *def);
