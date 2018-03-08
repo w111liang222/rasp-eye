@@ -16,20 +16,21 @@ ${CMAKE_SOURCE_DIR}/src
 
 ADD_EXECUTABLE(main main.cpp x264_encoder.cpp)
 
+LINK_LIBRARIES("/usr/local/lib/libliveMedia.a")
 LINK_LIBRARIES("/usr/local/lib/libgroupsock.a")
 LINK_LIBRARIES("/usr/local/lib/libBasicUsageEnvironment.a")
 LINK_LIBRARIES("/usr/local/lib/libUsageEnvironment.a")
-LINK_LIBRARIES("/usr/local/lib/libliveMedia.a")
+
 
 
 TARGET_LINK_LIBRARIES(main libx264.a)
 
 TARGET_LINK_LIBRARIES(
 main
-libgroupsock.a
+libliveMedia.a
 libBasicUsageEnvironment.a
 libUsageEnvironment.a
-libliveMedia.a
+libgroupsock.a
 )
 
 TARGET_LINK_LIBRARIES(
