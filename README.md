@@ -1,4 +1,4 @@
-# rasp-eye
+# rasp-eye tcp传输部分
 DJI 入职作业
 
 ## 说明（基于树莓派的远程智能相机）
@@ -10,8 +10,12 @@ DJI 入职作业
 1) 获取USB摄像头数据，直接采用opencv（基于V4L2）。
 2) 视频流编码格式采用H.264，基于x264库进行编码。
 3) RTSP推流，可用VLC实现播放
+
+### 谷歌云（Ubuntu 16.04）：
+1）搭建ngrok服务器，提供内网穿透功能
+
 ### Ubuntu PC:
-1) H.264视频解码。
+1) Ubuntu PC作为Client，向树莓派发出视频请求？
 2) 基于YOLO网络检测视频中的目标。
 3) 输出MJPEG视频流，并推送至HTTP服务器。
 <div align="center">
@@ -28,8 +32,8 @@ libcv-dev的安装：sudo apt-get install libcv-dev；
 x264的安装：采用源码编译安装，参考https://www.jianshu.com/p/dec9bf9cffc9
 live555的编译后请运行sudo make install，自动安装至/usr/local/lib目录下
 
-### Ubuntu PC:
-CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg
+### 谷歌云：
+goalang
 
 ## 编译
 ```shell
@@ -42,7 +46,6 @@ make
 ## 使用
 可执行程序为bin/main
 ```shell
-<<<<<<< HEAD
 ./rasp_eye_pc -h
 
 Usage: ./rasp_eye_pc image/video [Options]
@@ -65,15 +68,18 @@ Options:
 =======
 cd ./build
 bin/main
->>>>>>> origin/video_H264_RTSP
 ```
 VLC播放器打开后，点击播放按钮-选择网络选项-输入网络URL：rtsp://192.168.1.102:8554/testStream，即可。
 
 ## Reference
 https://www.jianshu.com/p/dec9bf9cffc9
 
+[ngrok](https://github.com/inconshreveable/ngrok.git)
+
 ## Contact
 twei@whu.edu.cn
+
+david.yao.sh.dy@gmail.com
 
 ## License
 [GPL-3.0](LICENSE)
