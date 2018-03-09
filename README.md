@@ -9,10 +9,10 @@ DJI 入职作业
 ### 树莓派:
 1) 获取USB摄像头数据，采集接口为V4L2。
 2) 视频流编码格式采用H.264，基于FFmpeg库进行编码。
-3) 数据传输协议采用TCP协议，保证数据传输的可靠性。
+3) 数据传输协议采用RTSP协议。
 4) 基于ngrok实现内网穿透。
 ### Ubuntu PC:
-1) H.264视频解码。
+1) libvlc访问RTSP服务器，H.264视频解码。
 2) 基于YOLO网络检测视频中的目标。
 3) 输出MJPEG视频流，并推送至HTTP服务器。
 <div align="center">
@@ -25,7 +25,7 @@ DJI 入职作业
 ### 树莓派:
 
 ### Ubuntu PC:
-CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg
+CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg LibVLC
 
 ## 编译
 ```shell
@@ -47,7 +47,9 @@ Options:
                 tiny-coco
                 voc
                 tiny-voc
-  -i            specify the input file
+  -i            specify the remote IP and port
+  -f 		specify the camera device
+  -r		specify the rtsp address
   -w            set image width
   -h            set image height
   -fps          set fps of video
@@ -58,7 +60,7 @@ Options:
   -h            for help
 
 ```
-视频访问:http://127.0.0.1:8080/?action=stream
+视频访问:http://ngrok.misaki.top:8090/?action=stream
 
 ## Reference
 [Darknet](https://pjreddie.com/darknet/)
@@ -67,6 +69,11 @@ Options:
 
 ## Contact
 15lwang@tongji.edu.cn
+
+twei@whu.edu.cn
+
+david.yao.sh.dy@gmail.com
+
 
 ## License
 [GPL-3.0](LICENSE)
