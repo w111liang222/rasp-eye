@@ -6,6 +6,13 @@
 #include <opencv/cv.h>
 #include <opencv2/highgui/highgui.hpp>
 
+struct TNAL
+{
+    int size;
+    unsigned char* data;
+    TNAL(): size(0), data(NULL) {}
+};
+
 struct x264_encoder{
     x264_param_t    param;
     char            preset[20];
@@ -41,7 +48,7 @@ public:
 
     /** 编码一帧
      * @param[in] frame 输入的一帧图像
-     * @return 返回编码后数据尺寸, 0表示编码失败
+     * @return 返回编码后原始码流数据尺寸, 0表示编码失败
      */
     int EncodeOneFrame(const cv::Mat& frame);
 
@@ -58,6 +65,12 @@ public:
     // 编码器是否可用
     bool IsValid() const;
 
+    //返回编码后的nal数量
+    int ReturnNalNum();
+
+    //返回编码后的nal数据
+    x264_nal_t* ReturnNal();
+
 private:
 
     void Init();
@@ -68,13 +81,14 @@ public:
     int m_channel;
     int m_fps;
 
+    x264_encoder*  m_encoder;
 protected:
 
     int m_widthstep;
     int m_lumaSize;
     int m_chromaSize;
 
-    x264_encoder*  m_encoder;
+
 };
 
 #endif

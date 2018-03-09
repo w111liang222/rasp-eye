@@ -154,6 +154,7 @@ int x264Encoder::EncodeOneFrame(const cv::Mat& frame)
     memcpy(m_encoder->pic_in.img.plane[2], yuv.data + m_lumaSize + m_chromaSize, m_chromaSize);
     m_encoder->pic_in.i_pts = m_encoder->iframe ++;
 
+    //原始码流长度iframe_size
     m_encoder->iframe_size = x264_encoder_encode(m_encoder->h, &m_encoder->nal, &m_encoder->inal, &m_encoder->pic_in, &m_encoder->pic_out);
 
     return m_encoder->iframe_size;
@@ -179,4 +180,14 @@ void x264Encoder::Destory()
 bool x264Encoder::IsValid() const
 {
     return ((m_encoder != NULL) && (m_encoder->h != NULL));
+}
+
+int x264Encoder::ReturnNalNum()
+{
+  return m_encoder->inal;
+}
+
+x264_nal_t* x264Encoder::ReturnNal()
+{
+  return m_encoder->nal;
 }

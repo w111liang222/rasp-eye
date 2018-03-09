@@ -14,7 +14,13 @@ ${CMAKE_SOURCE_DIR}/src
 /usr/local/include/UsageEnvironment
 )
 
-ADD_EXECUTABLE(main main.cpp x264_encoder.cpp)
+ADD_EXECUTABLE(
+main
+main.cpp
+x264_encoder.cpp
+CamH264VideoStreamFramer.cpp
+H264LiveVideoServerMediaSubsession.cpp
+)
 
 LINK_LIBRARIES("/usr/local/lib/libliveMedia.a")
 LINK_LIBRARIES("/usr/local/lib/libgroupsock.a")
