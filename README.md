@@ -4,13 +4,12 @@ DJI 入职作业
 ## 说明（基于树莓派的远程智能相机）
 树莓派采集视频，由后台GPU服务器进行目标检测。用户打开浏览器访问远程视频及检测结果。
 
-本程序分为树莓派与Ubuntu16.04 PC两部分应用程序
+本分支处理树莓派端的视频采集，和H.264流的生成，并实现RTSP服务器推流
 
 ### 树莓派:
-1) 获取USB摄像头数据，采集接口为V4L2。
-2) 视频流编码格式采用H.264，基于FFmpeg库进行编码。
-3) 数据传输协议采用TCP协议，保证数据传输的可靠性。
-4) 基于ngrok实现内网穿透。
+1) 获取USB摄像头数据，直接采用opencv（基于V4L2）。
+2) 视频流编码格式采用H.264，基于x264库进行编码。
+3) RTSP推流，可用VLC实现播放
 ### Ubuntu PC:
 1) H.264视频解码。
 2) 基于YOLO网络检测视频中的目标。
@@ -23,6 +22,11 @@ DJI 入职作业
 
 ## 依赖项
 ### 树莓派:
+libcv-dev x264 live555
+
+libcv-dev的安装：sudo apt-get install libcv-dev；
+x264的安装：采用源码编译安装，参考https://www.jianshu.com/p/dec9bf9cffc9
+live555的编译后请运行sudo make install，自动安装至/usr/local/lib目录下
 
 ### Ubuntu PC:
 CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg
@@ -36,8 +40,9 @@ make
 ```
 
 ## 使用
-Ubuntu PC的可执行程序为rasp_eye_pc
+可执行程序为bin/main
 ```shell
+<<<<<<< HEAD
 ./rasp_eye_pc -h
 
 Usage: ./rasp_eye_pc image/video [Options]
@@ -57,22 +62,18 @@ Options:
   -hier
   -h            for help
 
+=======
+cd ./build
+bin/main
+>>>>>>> origin/video_H264_RTSP
 ```
-视频访问:http://127.0.0.1:8080/?action=stream
+VLC播放器打开后，点击播放按钮-选择网络选项-输入网络URL：rtsp://192.168.1.102:8554/testStream，即可。
 
 ## Reference
-[Darknet](https://pjreddie.com/darknet/)
-
-[MJPEG Streamer](https://github.com/jacksonliam/mjpg-streamer)
+https://www.jianshu.com/p/dec9bf9cffc9
 
 ## Contact
-15lwang@tongji.edu.cn
+twei@whu.edu.cn
 
 ## License
 [GPL-3.0](LICENSE)
-
-
-
-
-
-

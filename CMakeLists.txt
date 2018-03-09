@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.9)
 
+PROJECT(BIRD_CAPTURE)
+ADD_SUBDIRECTORY(src bin)
+
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/rasp_detection/darknet_modify/mjpg-streamer/cmake ${CMAKE_MODULE_PATH})
 include(CheckLibraryExists)
 include(CheckIncludeFiles)
@@ -177,4 +180,5 @@ TARGET_LINK_LIBRARIES(rasp_eye_pc ${OpenCV_LIBS})
 TARGET_LINK_LIBRARIES(rasp_eye_pc vlc)
 TARGET_LINK_LIBRARIES(rasp_eye_pc cuda cudart cublas curand cudnn)
 TARGET_LINK_LIBRARIES(rasp_eye_pc avcodec avformat swscale avutil camkit)
+
 
