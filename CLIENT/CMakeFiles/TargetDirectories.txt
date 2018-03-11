@@ -1,0 +1,14 @@
+/home/pi/rasp-eye/CLIENT/CMakeFiles/install/local.dir
+/home/pi/rasp-eye/CLIENT/CMakeFiles/install.dir
+/home/pi/rasp-eye/CLIENT/CMakeFiles/CLIENT.dir
+/home/pi/rasp-eye/CLIENT/CMakeFiles/list_install_components.dir
+/home/pi/rasp-eye/CLIENT/CMakeFiles/install/strip.dir
+/home/pi/rasp-eye/CLIENT/CMakeFiles/edit_cache.dir
+/home/pi/rasp-eye/CLIENT/CMakeFiles/rebuild_cache.dir
+/home/pi/rasp-eye/CLIENT/WRAP/CMakeFiles/install/local.dir
+/home/pi/rasp-eye/CLIENT/WRAP/CMakeFiles/install.dir
+/home/pi/rasp-eye/CLIENT/WRAP/CMakeFiles/WRAP.dir
+/home/pi/rasp-eye/CLIENT/WRAP/CMakeFiles/list_install_components.dir
+/home/pi/rasp-eye/CLIENT/WRAP/CMakeFiles/install/strip.dir
+/home/pi/rasp-eye/CLIENT/WRAP/CMakeFiles/edit_cache.dir
+/home/pi/rasp-eye/CLIENT/WRAP/CMakeFiles/rebuild_cache.dir

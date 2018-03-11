@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/rasp-eye/CLIENT/Client.c
+netinet/in.h
+-
+sys/types.h
+-
+sys/socket.h
+-
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+ClientConfig.h
+/home/pi/rasp-eye/CLIENT/ClientConfig.h
+Wrap.h
+/home/pi/rasp-eye/CLIENT/Wrap.h
+
+/home/pi/rasp-eye/CLIENT/ClientConfig.h
+
+WRAP/Wrap.h
+sys/socket.h
+-
+stdlib.h
+-
+

@@ -1,0 +1,3 @@
+#define CLIENT_VERSION_MAJOR 2
+#define CLIENT_VERSION_MINOR 0
+#define USE_WRAP

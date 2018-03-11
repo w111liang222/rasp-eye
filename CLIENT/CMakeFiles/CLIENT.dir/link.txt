@@ -1,0 +1,1 @@
+/usr/bin/cc     CMakeFiles/CLIENT.dir/Client.c.o  -o CLIENT -rdynamic WRAP/libWRAP.a 
