@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    if (-1 == (connect_to(argv[1], SERVER_PORT)))
+    if (-1 == (conn_fd = connect_to(argv[1], SERVER_PORT)))
     {
         perror ("Connect to Server Failed: ");
         exit(1);

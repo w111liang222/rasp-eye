@@ -1,4 +1,0 @@
-/usr/local/bin/CLIENT
-/usr/local/include/ClientConfig.h
-/usr/local/bin/libWRAP.a
-/usr/local/include/Wrap.h
