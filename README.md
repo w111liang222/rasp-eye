@@ -7,10 +7,15 @@ DJI 入职作业
 本程序分为树莓派与Ubuntu16.04 PC两部分应用程序
 
 ### 树莓派:
-1) 获取USB摄像头数据，采集接口为V4L2。
-2) 视频流编码格式采用H.264，基于FFmpeg库进行编码。
-3) 数据传输协议采用RTSP协议。
+处理树莓派端的视频采集，和H.264流的生成，并实现RTSP服务器推流
+1) 获取USB摄像头数据，直接采用opencv（基于V4L2）。
+2) 视频流编码格式采用H.264，基于x264库进行编码。
+3) RTSP推流，可用VLC实现播放。
 4) 基于ngrok实现内网穿透。
+
+### 谷歌云（Ubuntu 16.04）：
+1）搭建ngrok服务器，提供内网穿透功能
+
 ### Ubuntu PC:
 1) libvlc访问RTSP服务器，H.264视频解码。
 2) 基于YOLO网络检测视频中的目标。
@@ -23,9 +28,19 @@ DJI 入职作业
 
 ## 依赖项
 ### 树莓派:
+libcv-dev x264 live555
+
+libcv-dev的安装：sudo apt-get install libcv-dev
+
+x264的安装：采用源码编译安装，参考https://www.jianshu.com/p/dec9bf9cffc9
+
+live555的编译后请运行sudo make install，自动安装至/usr/local/lib目录下
 
 ### Ubuntu PC:
 CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg LibVLC
+
+### 谷歌云：
+goalang
 
 ## 编译
 ```shell
@@ -36,11 +51,19 @@ make
 ```
 
 ## 使用
-Ubuntu PC的可执行程序为rasp_eye_pc
+### 树莓派:
+可执行程序为bin/main
+```shell
+cd ./build
+bin/main
+```
+VLC播放器打开后，点击播放按钮-选择网络选项-输入网络URL：rtsp://192.168.1.102:8554/testStream，即可。
+
+### Ubuntu PC:
 ```shell
 ./rasp_eye_pc -h
 
-Usage: ./rasp_eye_pc image/video \[Options\]
+Usage: ./rasp_eye_pc image/video [Options]
 Options:
   -d            specify the detector to use
                 coco
@@ -67,6 +90,10 @@ Options:
 
 [MJPEG Streamer](https://github.com/jacksonliam/mjpg-streamer)
 
+[树莓派编译安装FFmpeg](https://www.jianshu.com/p/dec9bf9cffc9)
+
+[ngrok](https://github.com/inconshreveable/ngrok.git)
+
 ## Contact
 15lwang@tongji.edu.cn
 
@@ -74,12 +101,5 @@ twei@whu.edu.cn
 
 david.yao.sh.dy@gmail.com
 
-
 ## License
 [GPL-3.0](LICENSE)
-
-
-
-
-
-
