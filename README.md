@@ -14,7 +14,7 @@ DJI 入职作业
 4) 基于ngrok实现内网穿透。
 
 ### 谷歌云（Ubuntu 16.04）：
-1）搭建ngrok服务器，提供内网穿透功能
+1）部署ngrok服务端，提供内网穿透功能。
 
 ### Ubuntu PC:
 1) libvlc访问RTSP服务器，H.264视频解码。
@@ -36,11 +36,12 @@ x264的安装：采用源码编译安装，参考https://www.jianshu.com/p/dec9b
 
 live555的编译后请运行sudo make install，自动安装至/usr/local/lib目录下
 
+### 谷歌云：
+golang 1.6.3 ngrok
+ngrok的域名解析，证书生成，编译请参考https://www.sfantree.com/ngrok-raspberry-cross-nat
+
 ### Ubuntu PC:
 CUDA-8.0 CUDNN OpenBLAS OpenCV3.3.1 CMake FFmpeg LibVLC
-
-### 谷歌云：
-goalang
 
 ## 编译
 ```shell
@@ -51,13 +52,27 @@ make
 ```
 
 ## 使用
+### 谷歌云：
+```shell
+cd ./ngrok
+bin/ngrokd -tlsKey=device.key -tlsCrt=device.crt -domain "ngrok.misaki.top" -httpAddr=":8080" -tunnelAddr=":8083"
+```
+部署ngrok服务端，http监听端口8080，控制转发监听端口8083。
+
 ### 树莓派:
+1) 内网穿透：
+```shell
+bin/ngrok -config=ngrok.conf start rtsp
+```
+开启RTSP内网穿透功能
+
+2) 视频采集与RTSP推流：
 可执行程序为bin/main
 ```shell
 cd ./build
 bin/main
 ```
-VLC播放器打开后，点击播放按钮-选择网络选项-输入网络URL：rtsp://192.168.1.102:8554/testStream，即可。
+VLC播放器打开后，点击播放按钮-选择网络选项-输入网络URL：rtsp://ngrok.misaki.top:10087/H264Live，即可。
 
 ### Ubuntu PC:
 ```shell
